@@ -1,24 +1,30 @@
 require('dotenv').config();
-import { Sequelize } from 'sequelize';
-import { readdirSync } from 'fs';
-import { basename as _basename, join } from 'path';
+const { Sequelize, DataTypes, Op } = require('sequelize');
+const fs = require('fs');
+const path = require('path');
 const {
-  DB_USER, DB_PASSWORD, DB_HOST,
+  DB_USER, DB_PASSWORD, DB_HOST,DB_NAME
 } = process.env;
 
-const sequelize = new Sequelize(`postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/food`, {
+// API_KEY=206aac4c607943c49eb99bf20a699dad 
+// API_URL=https://api.spoonacular.com/recipes/complexSearch
+// API_URL2=https://api.spoonacular.com/recipes/{id}/information
+// API_FLAG=&addRecipeInformation=true
+// API_URL100=https://api.spoonacular.com/recipes/complexSearch?apiKey=206aac4c607943c49eb99bf20a699dad&number=100
+
+const sequelize = new Sequelize(`postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}`, {
   logging: false, // set to console.log to see the raw SQL queries
   native: false, // lets Sequelize know we can use pg-native for ~30% more speed
 });
-const basename = _basename(__filename);
+const basename = path.basename(__filename);
 
 const modelDefiners = [];
 
 // Leemos todos los archivos de la carpeta Models, los requerimos y agregamos al arreglo modelDefiners
-readdirSync(join(__dirname, '/models'))
+fs.readdirSync(path.join(__dirname, '/models'))
   .filter((file) => (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js'))
   .forEach((file) => {
-    modelDefiners.push(require(join(__dirname, '/models', file)));
+    modelDefiners.push(require(path.join(__dirname, '/models', file)));
   });
 
 // Injectamos la conexion (sequelize) a todos los modelos
@@ -30,12 +36,45 @@ sequelize.models = Object.fromEntries(capsEntries);
 
 // En sequelize.models están todos los modelos importados como propiedades
 // Para relacionarlos hacemos un destructuring
-const { Recipe } = sequelize.models;
-
+const { Recipe, Diet, Step, User } = sequelize.models;
 // Aca vendrian las relaciones
-// Product.hasMany(Reviews);
+// Recetas ==> N-M<== Dietas;
+Recipe.belongsToMany(Diet, { through: 'recipe_diets' });
+Diet.belongsToMany(Recipe, { through: 'recipe_diets' });
 
-export default {
+// Recetas ==> N-M <== Pasos;
+const Recipe_Step = sequelize.define('recipe_step', { 
+  step:{ 
+    type:DataTypes.INTEGER, 
+    allowNull: false,
+  }}, 
+  { timestamps: false }
+);
+Recipe.belongsToMany(Step, { through: Recipe_Step });
+Step.belongsToMany(Recipe, { through: Recipe_Step });
+
+// Usuarios ==> N-M <== Recetas
+const User_Recipe = sequelize.define('rate', { 
+  score:{ 
+    type:DataTypes.ENUM('1', '2', '3', '4', '5'),
+    allowNull: false,
+  }}, 
+  { timestamps: false }
+);
+User.belongsToMany(Recipe, { through: User_Recipe });
+Recipe.belongsToMany(User, { through: User_Recipe });
+
+// Usuario ==> 1-N <== Receta
+User.hasMany(Recipe);
+Recipe.belongsTo(User);
+
+// Usuario ==> 1-N <== Dieta
+User.hasMany(Diet);
+Diet.belongsTo(User);
+
+
+module.exports = {
   ...sequelize.models, // para poder importar los modelos así: const { Product, User } = require('./db.js');
   conn: sequelize,     // para importart la conexión { conn } = require('./db.js');
+  Op,
 };
