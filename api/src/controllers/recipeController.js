@@ -43,17 +43,26 @@ const getAllRecipes = async ( req, res, next ) => {
 }
 
 const getRecipeById = async ( req, res, next ) => {
-    let { id } = req.params
+    const { id } = req.params
     try {
-        let data
-        if ( !Number(id) ){
-            data = await Recipe.findByPk(id)
-        } else {
-            const dataDB = await axios( `${API_URL1}/${id}/${FLAG_URL}` );
-            data = dataDB.data
-        }
+        let allData
 
-        data ? res.status(200).json(data) : res.status(404).json( { msg: "Recipe not found!!" } )
+        let { data: { results: dataAPI } } = await axios( `${ API_URL }` );
+        let dataDB = await Recipe.findAll()
+        
+        dataAPI = dataAPI.map( element => {
+            const { id, title, summary, healthScore, image, steps, diets } = element
+            return { id, title, summary, healthScore, image, steps, diets }
+        })
+
+        allData = [ ...dataAPI, ...dataDB ]
+        
+        if ( id ) {
+            const recipe = allData.filter( element => element.id === Number(id) )
+            recipe.length ? res.status(200).json(recipe) : res.status(404).json( { msg: "Recipe not found!!" } )
+        } else {
+            res.status(400).json( { msg: "Bad Request!!" } )
+        }
     } catch (error) {
         next(error)
     }
