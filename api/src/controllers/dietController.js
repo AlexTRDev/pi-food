@@ -1,11 +1,16 @@
 // import model
+const axios = require("axios")
 const { Diet } = require("../db")
-
+const {
+    API_URL, API_URL1, API_URL2, FLAG_URL
+  } = process.env;
 //funciones de controlador
 const getAllDiet = async ( req, res, next ) => {
     try {
         const data = await Diet.findAll()
-        data.length ? res.status(200).json(data) : res.status(404).json( { msg: "No data, add data to display!!" } )
+
+        // const data = await Diet.findAll()
+        data.length ? res.status(200).json({data}) : res.status(404).json( { msg: "No data, add data to display!!" } )
     } catch (error) {
         next(error)
     }

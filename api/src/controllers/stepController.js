@@ -36,7 +36,7 @@ const createStepBulk = async ( req, res, next ) => {
     const { body } = req
     try {
         const data = await Step.bulkCreate(body)
-        if( data.length ) res.status(201).json({ msg: "Sucessfull created a list of steps" })
+        if( data.length ) res.status(201).json({data, msg: "Sucessfull created a list of steps" })
     } catch (error) {
         next(error)
     }

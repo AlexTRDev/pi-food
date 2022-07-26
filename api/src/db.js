@@ -42,27 +42,13 @@ const { Recipe, Diet, Step, User } = sequelize.models;
 Recipe.belongsToMany(Diet, { through: 'recipe_diets' });
 Diet.belongsToMany(Recipe, { through: 'recipe_diets' });
 
-// Recetas ==> N-M <== Pasos;
-const Recipe_Step = sequelize.define('recipe_step', { 
-  step:{ 
-    type:DataTypes.INTEGER, 
-    allowNull: false,
-  }}, 
-  { timestamps: false }
-);
-Recipe.belongsToMany(Step, { through: Recipe_Step });
-Step.belongsToMany(Recipe, { through: Recipe_Step });
+// Recetas ==> 1-N <== Pasos;
+Recipe.hasMany(Step);
+Step.belongsTo(Recipe);
 
 // Usuarios ==> N-M <== Recetas
-const User_Recipe = sequelize.define('rate', { 
-  score:{ 
-    type:DataTypes.ENUM('1', '2', '3', '4', '5'),
-    allowNull: false,
-  }}, 
-  { timestamps: false }
-);
-User.belongsToMany(Recipe, { through: User_Recipe });
-Recipe.belongsToMany(User, { through: User_Recipe });
+User.belongsToMany(Recipe, { through: "favorites" });
+Recipe.belongsToMany(User, { through: "favorites" });
 
 // Usuario ==> 1-N <== Receta
 User.hasMany(Recipe);

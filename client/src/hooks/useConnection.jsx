@@ -8,7 +8,7 @@ const INICIAL_STATE = {
     error: null
 }
 //custom hook
-export function useConnection(url) {
+export function useFetch(url) {
     // control de Datos, Espera y error
     const [connection, setConnection] = useState(INICIAL_STATE)
     // control de la respuesta de la conexion

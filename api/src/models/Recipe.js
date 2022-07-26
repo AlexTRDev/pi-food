@@ -11,10 +11,11 @@ module.exports = (sequelize) => {
       unique: true
     },
     summary: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(10000),
       allowNull: false,
     },
-    healthScore: DataTypes.DECIMAL(3,1),
+    healthScore: DataTypes.DECIMAL,
     image: DataTypes.STRING,
+    readyInMinutes: DataTypes.STRING
   });
 };
