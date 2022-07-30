@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { Sequelize, DataTypes, Op } = require('sequelize');
+const { Sequelize, Op } = require('sequelize');
 const fs = require('fs');
 const path = require('path');
 const {
@@ -39,24 +39,24 @@ sequelize.models = Object.fromEntries(capsEntries);
 const { Recipe, Diet, Step, User } = sequelize.models;
 // Aca vendrian las relaciones
 // Recetas ==> N-M<== Dietas;
-Recipe.belongsToMany(Diet, { through: 'recipe_diets' });
-Diet.belongsToMany(Recipe, { through: 'recipe_diets' });
+Recipe.belongsToMany(Diet, { through: 'recipe_diet' });
+Diet.belongsToMany(Recipe, { through: 'recipe_diet' });
 
 // Recetas ==> 1-N <== Pasos;
 Recipe.hasMany(Step);
 Step.belongsTo(Recipe);
 
 // Usuarios ==> N-M <== Recetas
-User.belongsToMany(Recipe, { through: "favorites" });
-Recipe.belongsToMany(User, { through: "favorites" });
+User.belongsToMany(Recipe, { through: "favorite", as: "favorites" });
+Recipe.belongsToMany(User, { through: "favorite", as: "favorites" });
 
-// Usuario ==> 1-N <== Receta
-User.hasMany(Recipe);
-Recipe.belongsTo(User);
+// Usuario ==> N-N <== Receta
+User.belongsToMany(Recipe, { through: "user_recipe" });
+Recipe.belongsToMany(User, { through: "user_recipe" });
 
-// Usuario ==> 1-N <== Dieta
-User.hasMany(Diet);
-Diet.belongsTo(User);
+// Usuario ==> N-N <== Dieta
+User.belongsToMany(Diet, { through: "user_diet" });
+Diet.belongsToMany(User, { through: "user_diet" });
 
 
 module.exports = {

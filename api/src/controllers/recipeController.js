@@ -10,7 +10,7 @@ const {
 
 const getAllRecipesBD = async ( req, res, next ) => {
     try {
-        const data = await Recipe.findAll({
+        const recipes = await Recipe.findAll({
             include: [
                 {
                     model: Diet,
@@ -21,7 +21,7 @@ const getAllRecipesBD = async ( req, res, next ) => {
             ],
             order: [ ["id", "ASC"] ]
         })
-        data.length ? res.status(200).json({data}) : res.status(404).json( { msg: "No data, add data to display!!" } )
+        recipes.length ? res.status(200).json({recipes}) : res.status(404).json( { msg: "No data, add data to display!!" } )
     } catch (error) {
         next(error)
     }
@@ -30,8 +30,7 @@ const getAllRecipesBD = async ( req, res, next ) => {
 const getAllRecipes = async ( req, res, next ) => {
     const { name } = req.query;
     try {
-        let data
-
+        let recipes
         let dataDB = await Recipe.findAll({
             include: [
                 {
@@ -54,17 +53,18 @@ const getAllRecipes = async ( req, res, next ) => {
                 healthScore: element.healthScore,
                 image: element.image,
                 readyInMinutes: element.readyInMinutes,
-                diets: element.diets?.map( (diet) => {return {["name"]: diet}}),
                 steps: element.analyzedInstructions[0]?.steps.map( (step) => { return {["name"] : step.step} } ),
+                diets: element.diets?.map( (diet) => {return {["name"]: diet}}),
+                userId: 1
             }
         })
         
-        data = [ ...dataAPI, ...dataDB ]
+        recipes = [ ...dataAPI, ...dataDB ]
 
         if ( name ) {
-            data = data.filter( element => element.title.toUpperCase().includes(name.toUpperCase()))
+            recipes = recipes.filter( element => element.title.toUpperCase().includes(name.toUpperCase()))
         }
-        data.length ? res.status(200).json({ data }) : res.status(404).json({ msg: "Recipe not found!!" })
+        recipes.length ? res.status(200).json({ recipes }) : res.status(404).json({ msg: "Recipe not found!!" })
         
     } catch (error) {
         next(error)
@@ -74,14 +74,14 @@ const getAllRecipes = async ( req, res, next ) => {
 const getRecipeById = async ( req, res, next ) => {
     const { id } = req.params
     try {
-        if ( !id ) res.status(400).json( { msg: "Bad Request!!" } )
-        let data
+        if ( !id ) return res.status(400).json( { msg: "Bad Request!!" } ) 
+        let recipe
         if ( Number( id ) ){
-            data = await axios( `${ API_URL1 }/${ id }/${ FLAG_URL }` );
+            recipe = await axios( `${ API_URL1 }/${ id }/${ FLAG_URL }` );
         } else{
-            data = await Recipe.findByPk( id )
+            recipe = await Recipe.findByPk( id )
         }
-        data ? res.status(200).json({data}) : res.status(404).json( { msg: "Recipe not found!!" } )
+        recipe ? res.status(200).json({recipe}) : res.status(404).json( { msg: "Recipe not found!!" } )
     } catch (error) {
         next(error)
     }
@@ -95,44 +95,48 @@ const createRecipe = async (req, res, next) => {
         image,
         steps,
         diets,
-        readyInMinutes
+        readyInMinutes,
+        userId
     } = req.body
 
     try {
-        let data
+        let recipe
         if ( !title || !summary ) return res.status(400).json( { msg: "Bad Request!!" } )
-        data = await Recipe.create({ title, summary, healthScore, image, readyInMinutes })
+        recipe = await Recipe.create({ title, summary, healthScore, image, readyInMinutes })
         // add{nombre de la tabla} => agrega datos a la tabla intermedia
-        if ( diets ) { await data.addDiet(diets)}
+        if ( diets ) { await recipe.addDiets(diets)}
         if ( steps ) { 
             const pasos = await Step.bulkCreate(steps)
-            data.addStep(pasos)
+            recipe.addStep(pasos)
         }
-        if ( data ) res.status(201).json({data: data, msg: "Recipe created successfully!!" })
+        if ( userId ) {
+            await recipe.addUser(userId)
+        }
+        if ( recipe ) res.status(201).json({recipe, msg: "Recipe created successfully!!" })
     } catch (error) {
         next(error)
     }
 }
 
 const createRecipesBulk = async (req, res, next) => {
-    const body = req.body
+    const { data } = req.body
     try {
-        const data = await Recipe.bulkCreate(body)
-        // if ( diets ) data.addDiet(diets)
-        // if ( steps ) data.addStep(steps)
-        if ( data.length ) res.status(201).json({data, msg: "Recipes created successfully!!" })
+        const recipes = await Recipe.bulkCreate(data)
+        if ( userId ) {
+            await recipes.addUser(userId)
+        }
+        if ( recipes.length ) res.status(201).json({recipes, msg: "Recipes created successfully!!" })
     } catch (error) {
         next(error)
     }
 }
 
 const updateRecipe = async (req, res, next) => {
-
     const { id } = req.params;
     const body = req.body;
     try {
-        const data = await Recipe.update( {...body}, {where: { id }} );
-        data ? res.status(200).json({data, msg: "Recipe updated successfully!!" }) : res.status(404).json({ msg: "Recipe not found!!" })
+        const recipe = await Recipe.update( {...body}, {where: { id }} );
+        recipe ? res.status(200).json({recipe, msg: "Recipe updated successfully!!" }) : res.status(404).json({ msg: "Recipe not found!!" })
     } catch (error) {
         next(error);
     }
@@ -141,8 +145,8 @@ const updateRecipe = async (req, res, next) => {
 const deleteRecipe = async (req, res, next) => {
     const { id } = req.params;
     try {
-        const data = await Recipe.destroy( {where: {id}} );
-        data ? res.status(200).json({data, msg: "Recipe deleted successfully!!" }) : res.status(404).json({ msg: "Recipe not found!!" })
+        const recipe = await Recipe.destroy( {where: {id}} );
+        recipe ? res.status(200).json({recipe, msg: "Recipe deleted successfully!!" }) : res.status(404).json({ msg: "Recipe not found!!" })
     } catch (error) {
         next(error);
     }

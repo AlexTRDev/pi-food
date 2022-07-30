@@ -4,9 +4,8 @@ const { Step } = require("../db")
 //funciones de controlador
 const getAllSteps = async ( req, res, next ) => {
     try {
-        const data = await Step.findAll()
-        console.log(data)
-        data.length ? res.status(200).json(data) : res.status(404).json( { msg: "No data, add data to display!!" } )
+        const steps = await Step.findAll()
+        steps.length ? res.status(200).json({steps}) : res.status(404).json( { msg: "No data, add data to display!!" } )
     } catch (error) {
         next(error)
     }
@@ -15,8 +14,8 @@ const getAllSteps = async ( req, res, next ) => {
 const getStep = async ( req, res, next ) => {
     const { id } = req.params
     try {
-        const data = await Step.findByPk( id )
-        data ? res.status(200).json(data) : res.status(404).json({ msg: "Step not found!!" })
+        const step = await Step.findByPk( id )
+        step ? res.status(200).json({ step }) : res.status(404).json({ msg: "Step not found!!" })
     } catch (error) {
         next(error)
     }
@@ -25,8 +24,8 @@ const getStep = async ( req, res, next ) => {
 const createStep = async ( req, res, next ) => {
     const { body } = req
     try {
-        const data = await Step.create({...body })
-        if ( data ) res.status(201).json({ msg: "Sucessfull created Step!!" })
+        const step = await Step.create(body)
+        if ( step ) res.status(201).json({step, msg: "Sucessfull created Step!!" })
     } catch (error) {
         next(error)
     }
@@ -35,8 +34,8 @@ const createStep = async ( req, res, next ) => {
 const createStepBulk = async ( req, res, next ) => {
     const { body } = req
     try {
-        const data = await Step.bulkCreate(body)
-        if( data.length ) res.status(201).json({data, msg: "Sucessfull created a list of steps" })
+        const steps = await Step.bulkCreate(body)
+        if( steps.length ) res.status(201).json({steps, msg: "Sucessfull created a list of steps" })
     } catch (error) {
         next(error)
     }
@@ -46,8 +45,8 @@ const updateStep = async ( req, res, next ) => {
     const { id } = req.params
     const { body } = req
     try {
-        const data = await Step.update({ ...body }, { where:{ id } })
-        data[0] ? res.status(200).json({ msg: "Successfull updated Step!!" }) : res.status(404).json({ msg: "Step not found!!" })
+        const step = await Step.update({ ...body }, { where:{ id } })
+        step[0] ? res.status(200).json({ msg: "Successfull updated Step!!" }) : res.status(404).json({ msg: "Step not found!!" })
     } catch (error) {
         next(error)
     }
@@ -56,8 +55,8 @@ const updateStep = async ( req, res, next ) => {
 const deleteStep = async ( req, res, next ) => {
     const { id } = req.params
     try {
-        const data = await Step.destroy({ where: { id } })
-        data ? res.status(200).json({ msg: "Successfull deleted Step!!" }) : res.status(404).json({ msg: "Step not found!!" })
+        const step = await Step.destroy({ where: { id } })
+        step ? res.status(200).json({step, msg: "Successfull deleted Step!!" }) : res.status(404).json({ msg: "Step not found!!" })
     } catch (error) {
         next(error)
     }

@@ -7,10 +7,8 @@ const {
 //funciones de controlador
 const getAllDiet = async ( req, res, next ) => {
     try {
-        const data = await Diet.findAll()
-
-        // const data = await Diet.findAll()
-        data.length ? res.status(200).json({data}) : res.status(404).json( { msg: "No data, add data to display!!" } )
+        const diets = await Diet.findAll()
+        diets.length ? res.status(200).json({diets}) : res.status(404).json( { msg: "No data, add data to display!!" } )
     } catch (error) {
         next(error)
     }
@@ -19,8 +17,8 @@ const getAllDiet = async ( req, res, next ) => {
 const getDiet = async ( req, res, next ) => {
     const { id } = req.params
     try {
-        const data = await Diet.findByPk( id )
-        data ? res.status(200).json(data) : res.status(404).json({ msg: "Diet not found!!" })
+        const diet = await Diet.findByPk( id )
+        diet ? res.status(200).json(diet) : res.status(404).json({ msg: "Diet not found!!" })
     } catch (error) {
         next(error)
     }
@@ -29,8 +27,8 @@ const getDiet = async ( req, res, next ) => {
 const createDiet = async ( req, res, next ) => {
     const { body } = req
     try {
-        const data = await Diet.create({...body })
-        if ( data ) res.status(201).json({ msg: "Sucessfull created diet!!" })
+        const diet = await Diet.create(body)
+        if ( diet ) res.status(201).json({diet, msg: "Sucessfull created diet!!" })
     } catch (error) {
         next(error)
     }
@@ -40,8 +38,8 @@ const updateDiet = async ( req, res, next ) => {
     const { id } = req.params
     const { body } = req
     try {
-        const data = await Diet.update({ ...body }, { where:{ id } })
-        data[0] ? res.status(200).json({ msg: "Successfull updated diet!!" }) : res.status(404).json({ msg: "Diet not found!!" })
+        const diet = await Diet.update({ ...body }, { where:{ id } })
+        diet[0] ? res.status(200).json({diet, msg: "Successfull updated diet!!" }) : res.status(404).json({ msg: "Diet not found!!" })
     } catch (error) {
         next(error)
     }
@@ -50,8 +48,8 @@ const updateDiet = async ( req, res, next ) => {
 const createDietBulk = async ( req, res, next ) => {
     const { body } = req
     try {
-        const data = await Diet.bulkCreate(body)
-        if( data.length ) res.status(201).json({ msg: "Sucessfull created a list of diets" })
+        const diets = await Diet.bulkCreate(body)
+        if( diets.length ) res.status(201).json({ diets, msg: "Sucessfull created a list of diets" })
     } catch (error) {
         next(error)
     }
@@ -60,8 +58,8 @@ const createDietBulk = async ( req, res, next ) => {
 const deleteDiet = async ( req, res, next ) => {
     const { id } = req.params
     try {
-        const data = await Diet.destroy({ where: { id } })
-        data ? res.status(200).json({ msg: "Successfull deleted diet!!" }) : res.status(404).json({ msg: "Diet not found!!" })
+        const diet = await Diet.destroy({ where: { id } })
+        diet ? res.status(200).json({ diet, msg: "Successfull deleted diet!!" }) : res.status(404).json({ msg: "Diet not found!!" })
     } catch (error) {
         next(error)
     }

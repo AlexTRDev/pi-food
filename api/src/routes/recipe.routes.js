@@ -12,9 +12,9 @@ const {
 
 // rutas
 const router = Router();
-// router.get( "/", getAllRecipesBD )
+router.get( "/", getAllRecipesBD )
 
-router.get( "/", getAllRecipes )
+// router.get( "/", getAllRecipes )
 router.get( "/:id", getRecipeById )
 router.post( "/", createRecipe );
 router.post( "/bulk", createRecipesBulk );
